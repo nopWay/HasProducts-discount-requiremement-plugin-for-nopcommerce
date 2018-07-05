@@ -1,0 +1,9 @@
+﻿Group: Discount requirements
+FriendlyName: Customer has any of these products with specified quantity in the cart
+SystemName: DiscountRequirement.HasProducts
+Version: 0.01
+SupportedVersions: 3.90
+Author: nopWay
+DisplayOrder: 1
+FileName: Nop.Plugin.DiscountRules.HasProducts.dll
+Description: This plugin allows you to configure discounts for customers who have certain products in the cart

@@ -1,0 +1,156 @@
+﻿@{
+    Layout = "";
+}
+@model Nop.Plugin.DiscountRules.HasProducts.Models.RequirementModel
+@using Nop.Web.Framework;
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#saveHasProductsrequirement@(Model.RequirementId)').click(function () {
+            var productIds = $("#@Html.FieldIdFor(model => model.Products)").val();
+            var productQuantityMin = parseFloat($("#@Html.FieldIdFor(model => model.ProductQuantityMin)").val() || 0);
+            var productQuantityMax = parseFloat($("#@Html.FieldIdFor(model => model.ProductQuantityMax)").val() || 0);
+            var discountId = @Model.DiscountId;
+            var requirementId = @Model.RequirementId;
+
+            if (productQuantityMin <= productQuantityMax || productQuantityMin === 0 || productQuantityMax === 0) {
+                var postData = {
+                    discountId: discountId,
+                    discountRequirementId: requirementId,
+                    productIds: productIds,
+                    productQuantityMin: productQuantityMin,
+                    productQuantityMax: productQuantityMax
+                };
+                addAntiForgeryToken(postData);
+                $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: "@(Url.Action("Configure", "DiscountRulesHasProducts"))",
+                    data: postData,
+                    success: function (data) {
+                        $('#pnl-save-requirement-result@(Model.RequirementId)').fadeIn("slow").delay(1000).fadeOut("slow");
+                        //notify parent if it's a new requirement
+                        @if (Model.RequirementId == 0)
+                        {
+                            <text>$("#discountRequirementContainer").trigger('nopnewdiscountruleadded', [data.NewRequirementId]);</text>
+                        }
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert('@Html.Raw(HttpUtility.JavaScriptStringEncode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))');
+                    }
+                });
+            }
+            else {
+                alert('@Html.Raw(HttpUtility.JavaScriptStringEncode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))');
+            }
+        });
+    });
+</script>
+<div class="form-group">
+    <div class="col-md-3 requirement-label-col">
+        @Html.NopLabelFor(model => model.ProductQuantityMin)
+    </div>
+    <div class="col-md-9 requirement-data-col">
+        <div class="requirement-data-input">
+            @Html.NopEditorFor(model => model.ProductQuantityMin)
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3 requirement-label-col">
+        @Html.NopLabelFor(model => model.ProductQuantityMax)
+    </div>
+    <div class="col-md-9 requirement-data-col">
+        <div class="requirement-data-input">
+            @Html.NopEditorFor(model => model.ProductQuantityMax)
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3 requirement-label-col">
+        @Html.NopLabelFor(model => model.Products)
+    </div>
+    <div class="col-md-9 requirement-data-col">
+        <div class="requirement-data-input">
+            <div class="input-group">
+                @Html.NopEditorFor(model => model.Products)
+                <div class="input-group-btn">
+                    <input type="submit"
+                           id="btnAddNewDiscountRequirementProduct@(Model.RequirementId)"
+                           value="@T("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew")"
+                           onclick="javascript:OpenWindow('@(Url.RouteUrl("Plugin.DiscountRules.HasProducts.ProductAddPopup", new {btnId = "btnRefreshDiscountRequirementProducts" + Model.RequirementId, productIdsInput = Html.FieldIdFor(model => model.Products)}))', 800, 850, true); return false;"
+                           class="btn btn-info" />
+                    <input type="submit" id="btnRefreshDiscountRequirementProducts@(Model.RequirementId)" style="display: none" />
+                </div>
+            </div>
+        </div>
+        <div class="requirement-data-buttons">
+            <input type="button" id="saveHasProductsrequirement@(Model.RequirementId)" class="btn btn-primary" value="@T("Admin.Common.Save")" />
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-3 col-md-9 requirement-messages-col">
+        <div class="requirement-product-names text-blue" id="discountrequirement-product-names@(Model.RequirementId)"></div>
+        <div id="pnl-save-requirement-result@(Model.RequirementId)" style="display: none;" class="text-green margin-t-5">
+            @T("Admin.Promotions.Discounts.Requirements.Saved")
+        </div>
+        <div id="discountrequirement-products-check-progress@(Model.RequirementId)" class="please-wait pull-right" style="display: none;">
+            @T("Common.Wait...")
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#btnRefreshDiscountRequirementProducts@(Model.RequirementId)').click(function () {
+            //refresh product list
+            loadDiscountRequirementProductFriendlyNames@(Model.RequirementId)();
+
+            //return false to don't reload a page
+            return false;
+        });
+    });
+    $(document).ready(function () {
+        loadDiscountRequirementProductFriendlyNames@(Model.RequirementId)();
+    });
+    $(document).ready(function () {
+        $('#@Html.FieldIdFor(model => model.Products)')
+            .data('timeout', null)
+            .keyup(function() {
+                clearTimeout($(this).data('timeout'));
+                //one second timeout
+                $(this).data('timeout', setTimeout(loadDiscountRequirementProductFriendlyNames@(Model.RequirementId), 1000));
+            });
+    });
+    function loadDiscountRequirementProductFriendlyNames@(Model.RequirementId)() {
+        var inputValue = $('#@Html.FieldIdFor(model => model.Products)').val();
+        if (inputValue) {
+            //load friendly names
+            $('#discountrequirement-products-check-progress@(Model.RequirementId)').show();
+
+            var postData = {
+                productIds: inputValue
+            };
+            addAntiForgeryToken(postData);
+
+            $.ajax({
+                cache: false,
+                type: 'POST',
+                url: '@Url.RouteUrl("Plugin.DiscountRules.HasProducts.LoadProductFriendlyNames")',
+                data: postData,
+                dataType: 'json',
+                success: function(data) {
+                    $('#discountrequirement-products-check-progress@(Model.RequirementId)').hide();
+                    $('#discountrequirement-product-names@(Model.RequirementId)').text(data.Text);
+                },
+                failure: function () {
+                    $('#discountrequirement-products-check-progress@(Model.RequirementId)').hide();
+                    $('#discountrequirement-product-names@(Model.RequirementId)').text('');
+                }
+            });
+        } else {
+            $('#discountrequirement-product-names@(Model.RequirementId)').text('');
+        }
+    }
+</script>
