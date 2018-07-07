@@ -1,7 +1,7 @@
 ﻿Group: Discount requirements
 FriendlyName: Customer has any of these products with specified quantity in the cart
 SystemName: DiscountRequirement.HasProducts
-Version: 0.01
+Version: 1.00
 SupportedVersions: 3.90
 Author: nopWay
 DisplayOrder: 1
