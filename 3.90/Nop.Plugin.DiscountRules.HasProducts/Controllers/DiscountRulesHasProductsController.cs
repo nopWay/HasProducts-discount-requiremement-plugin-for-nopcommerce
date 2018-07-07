@@ -189,14 +189,16 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 pageSize: command.PageSize,
                 showHidden: true
                 );
-            var gridModel = new DataSourceResult();
-            gridModel.Data = products.Select(x => new RequirementModel.ProductModel
+            var gridModel = new DataSourceResult
             {
-                   Id = x.Id,
-                   Name = x.Name,
-                   Published = x.Published
-            });
-            gridModel.Total = products.TotalCount;
+                Data = products.Select(x => new RequirementModel.ProductModel
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Published = x.Published
+                }),
+                Total = products.TotalCount
+            };
 
             return Json(gridModel);
         }
@@ -207,11 +209,9 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
         public ActionResult LoadProductFriendlyNames(string productIds)
         {
             var result = "";
+            var hasManageProductsPermission = _permissionService.Authorize(StandardPermissionProvider.ManageProducts);
 
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
-                return Json(new { Text = result });
-
-            if (!String.IsNullOrWhiteSpace(productIds))
+            if (hasManageProductsPermission && !String.IsNullOrWhiteSpace(productIds))
             {
                 //we support comma-separated list of product identifiers (e.g. 77, 123, 156).
                 var rangeArray = productIds
