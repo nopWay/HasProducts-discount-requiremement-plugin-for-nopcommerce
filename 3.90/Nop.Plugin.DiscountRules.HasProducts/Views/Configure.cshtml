@@ -13,7 +13,7 @@
             var discountId = @Model.DiscountId;
             var requirementId = @Model.RequirementId;
 
-            if (productQuantityMin <= productQuantityMax || productQuantityMin === 0 || productQuantityMax === 0) {
+            if (productQuantityMin > 0 && productQuantityMax > 0 && productQuantityMin <= productQuantityMax) {
                 var postData = {
                     discountId: discountId,
                     discountRequirementId: requirementId,
@@ -22,6 +22,7 @@
                     productQuantityMax: productQuantityMax
                 };
                 addAntiForgeryToken(postData);
+
                 $.ajax({
                     cache: false,
                     type: "POST",
@@ -46,6 +47,7 @@
         });
     });
 </script>
+
 <div class="form-group">
     <div class="col-md-3 requirement-label-col">
         @Html.NopLabelFor(model => model.ProductQuantityMin)
