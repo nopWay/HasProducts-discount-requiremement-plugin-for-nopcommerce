@@ -94,11 +94,20 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
         public ActionResult Configure(int discountId, int? discountRequirementId, int productQuantityMin, int productQuantityMax, string productIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageDiscounts))
-                return Content("Access denied");
+                return Json(new { Result = false, ErrorMessage = "Access denied" });
+
+            if (string.IsNullOrEmpty(productIds))
+                return Json(new { Result = false, ErrorMessage = "Please select at least one product" });
+
+            if (productQuantityMin <= 0 || productQuantityMax <= 0)
+                return Json(new { Result = false, ErrorMessage = "Minimum and maximum quantities should be greater than zero" });
+
+            if (productQuantityMin > productQuantityMax)
+                return Json(new { Result = false, ErrorMessage = "Max quantity should be greater than minimum quantity" });
 
             var discount = _discountService.GetDiscountById(discountId);
             if (discount == null)
-                throw new ArgumentException("Discount could not be loaded");
+                return Json(new { Result = false, ErrorMessage = "Discount could not be loaded" });
 
             DiscountRequirement discountRequirement = null;
             if (discountRequirementId.HasValue)
