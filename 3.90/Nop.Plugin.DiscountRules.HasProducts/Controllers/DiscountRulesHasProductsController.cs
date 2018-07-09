@@ -198,18 +198,8 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 pageSize: command.PageSize,
                 showHidden: true
                 );
-            var gridModel = new DataSourceResult
-            {
-                Data = products.Select(x => new RequirementModel.ProductModel
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Published = x.Published
-                }),
-                Total = products.TotalCount
-            };
 
-            return Json(gridModel);
+            return Json(GetGridModel(products, products.TotalCount));
         }
 
         [HttpPost]
@@ -245,6 +235,20 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
             }
 
             return Json(new { Text = result });
+        }
+
+        private DataSourceResult GetGridModel(IList<Product> products, int total)
+        {
+            return new DataSourceResult
+            {
+                Data = products.Select(x => new RequirementModel.ProductModel
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Published = x.Published
+                }),
+                Total = total
+            };
         }
     }
 }
