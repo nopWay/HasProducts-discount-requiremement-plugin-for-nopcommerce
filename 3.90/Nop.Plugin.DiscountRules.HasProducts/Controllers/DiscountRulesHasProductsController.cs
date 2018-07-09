@@ -231,20 +231,16 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 //try to parse product ids
                 var ids = new List<int>();
                 foreach (string str1 in rangeArray)
-                {
                     if (int.TryParse(str1, out int productId))
-                    {
                         ids.Add(productId);
-                    }
-                }
 
                 //prepare product names
                 var products = _productService.GetProductsByIds(ids.ToArray());
                 var productNames = new List<string>();
+
                 for (int i = 0; i <= products.Count - 1; i++)
-                {
                     productNames.Add(products[i].Name);
-                }
+
                 result = string.Join(", ", productNames);
             }
 
