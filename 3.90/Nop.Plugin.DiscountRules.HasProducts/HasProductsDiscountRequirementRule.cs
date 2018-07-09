@@ -107,12 +107,15 @@ namespace Nop.Plugin.DiscountRules.HasProducts
         public override void Install()
         {
             //locales
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products", "Restricted products (quantity and range aren't applicable)");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Hint", "The comma-separated list of product identifiers (e.g. 77, 123, 156). You can find a product ID on its details page.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min", "Minimum product quantity");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min.Hint", "Discount will be applied if there are more resitricted products than the defined value here. Minimum quantity should be greater than zero.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max", "Maximum product quantity");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max.Hint", "Discount will be applied if there are fewer resitricted products than the defined value here. Maximum quantity should be greater than zero and minimum quantity.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products", "Products");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Hint", "The comma-separated list of product identifiers (e.g. 77, 123, 156). Quantity and range aren't applicable here. You can find a product ID on its details page.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min", "Minimum quantity");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min.Hint", "Discount will be applied if cart has more selected products than the defined value here. Minimum quantity should be greater than zero.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max", "Maximum quantity");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max.Hint", "Discount will be applied if cart has fewer selected products than the defined value here. Maximum quantity should be greater than zero and minimum quantity.");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Multiple.Selected", "{0} products selected");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Single.Selected", "One product selected");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected", "No products selected");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew", "Add product");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Choose", "Choose");
             base.Install();
@@ -127,6 +130,9 @@ namespace Nop.Plugin.DiscountRules.HasProducts
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min.Hint");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max.Hint");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Multiple.Selected");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Single.Selected");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Choose");
             base.Uninstall();
