@@ -4,7 +4,7 @@ This nopCommerce plugin allows you to configure discounts for customers who have
 ### Installation
 * Download latest release and copy "Nop.Plugin.Discount.HasProducts" folder to Nop.Web/Plugins directory.
 * Go to yourdomain.com/Admin/Plugin/List and click "Reload List of Plugins" button
-* Finally, scroll down to "Cart must contain a certain amount of products" plugin from the list and install it
+* Scroll down to "Cart must contain a certain amount of products" plugin and click "Install" button
 
 ### Usage
 * After creating a discount open "Reqirements" tab
