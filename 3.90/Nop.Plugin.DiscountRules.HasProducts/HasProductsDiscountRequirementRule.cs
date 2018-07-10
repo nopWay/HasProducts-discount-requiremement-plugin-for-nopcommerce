@@ -34,12 +34,12 @@ namespace Nop.Plugin.DiscountRules.HasProducts
             var productQuantityMin = _settingService.GetSettingByKey<int>(string.Format("DiscountRequirement.ProductQuantityMin-{0}", request.DiscountRequirementId));
             var productQuantityMax = _settingService.GetSettingByKey<int>(string.Format("DiscountRequirement.ProductQuantityMax-{0}", request.DiscountRequirementId));
             var restrictedProductIds = _settingService.GetSettingByKey<string>(string.Format("DiscountRequirement.RestrictedProductIds-{0}", request.DiscountRequirementId));
-            if (String.IsNullOrWhiteSpace(restrictedProductIds))
-            {
-                //valid
-                result.IsValid = true;
+
+            if (string.IsNullOrWhiteSpace(restrictedProductIds))
                 return result;
-            }
+
+            if (productQuantityMin <= 0 || productQuantityMax <= 0 || productQuantityMin > productQuantityMax)
+                return result;
 
             if (request.Customer == null)
                 return result;
@@ -60,32 +60,20 @@ namespace Nop.Plugin.DiscountRules.HasProducts
                             group sci by sci.ProductId into g
                             select new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) };
             var cart = cartQuery.ToList();
+            var totalQuantity = 0;
 
-            int totalQuantity = 0;
-            foreach (var restrictedProduct in restrictedProducts)
+            foreach (var sci in cart)
             {
-                if (String.IsNullOrWhiteSpace(restrictedProduct))
-                    continue;
-
-                foreach (var sci in cart)
+                if (restrictedProducts.Any(id => id == sci.ProductId.ToString()))
                 {
-                    if (int.TryParse(restrictedProduct, out int restrictedProductId))
-                    {
-                        if (sci.ProductId == restrictedProductId)
-                        {
-                            totalQuantity += sci.TotalQuantity;
+                    totalQuantity += sci.TotalQuantity;
 
-                            if (productQuantityMin > 0 && productQuantityMax > 0 &&
-                                totalQuantity >= productQuantityMin && totalQuantity <= productQuantityMax)
-                            {
-                                result.IsValid = true;
-                                return result;
-                            }
-                        }
-                    }
-                }               
+                    if (totalQuantity > productQuantityMax)
+                        return result;
+                }
             }
 
+            result.IsValid = totalQuantity >= productQuantityMin && totalQuantity <= productQuantityMax;
             return result;
         }
 

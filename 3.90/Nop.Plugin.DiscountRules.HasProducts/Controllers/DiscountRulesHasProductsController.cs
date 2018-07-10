@@ -133,7 +133,7 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
             return Json(new { Result = true, NewRequirementId = discountRequirement.Id }, JsonRequestBehavior.AllowGet);
         }
 
-        public ActionResult ProductAddPopup(string btnId, string productIdsInput)
+        public ActionResult ProductAddPopup()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
                 return Content("Access denied");
@@ -167,10 +167,6 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
             model.AvailableProductTypes = ProductType.SimpleProduct.ToSelectList(false).ToList();
             model.AvailableProductTypes.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
-
-            ViewBag.productIdsInput = productIdsInput;
-            ViewBag.btnId = btnId;
-
             return View("~/Plugins/DiscountRules.HasProducts/Views/ProductAddPopup.cshtml", model);
         }
 
@@ -200,6 +196,17 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 );
 
             return Json(GetGridModel(products, products.TotalCount));
+        }
+
+        [HttpPost]
+        [AdminAntiForgery]
+        public ActionResult ProductSelectedPopupList(string selectedProductIds)
+        {
+            if (!_permissionService.Authorize(StandardPermissionProvider.ManageProducts))
+                return Content("Access denied");
+
+            var products = _productService.GetProductsByIds(Array.ConvertAll(selectedProductIds.Split(','), int.Parse));
+            return Json(GetGridModel(products, products.Count()));
         }
 
         [HttpPost]

@@ -23,6 +23,11 @@ namespace Nop.Plugin.DiscountRules.HasProducts
                  new { controller = "DiscountRulesHasProducts", action = "ProductAddPopupList" },
                  new[] { "Nop.Plugin.DiscountRules.HasProducts.Controllers" }
             );
+            routes.MapRoute("Plugin.DiscountRules.HasProducts.ProductSelectedPopupList",
+                "Plugins/DiscountRulesHasProducts/ProductSelectedPopupList",
+                new { controller = "DiscountRulesHasProducts", action = "ProductSelectedPopupList" },
+                new[] { "Nop.Plugin.DiscountRules.HasProducts.Controllers" }
+            );
             routes.MapRoute("Plugin.DiscountRules.HasProducts.LoadProductFriendlyNames",
                  "Plugins/DiscountRulesHasProducts/LoadProductFriendlyNames",
                  new { controller = "DiscountRulesHasProducts", action = "LoadProductFriendlyNames" },

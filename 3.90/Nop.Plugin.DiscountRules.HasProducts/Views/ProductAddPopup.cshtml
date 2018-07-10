@@ -18,13 +18,19 @@
             @T("Plugins.DiscountRules.HasProducts.Fields.Products.Choose")
         </h1>
         <div class="pull-right">
-            &nbsp;
+            <a href="javascript:void(0)" id="js-selected-item-count"
+               data-text-multiple-selected="@T("Plugins.DiscountRules.HasProducts.Fields.Products.Multiple.Selected")"
+               data-text-single-selected="@T("Plugins.DiscountRules.HasProducts.Fields.Products.Single.Selected")"
+               data-text-not-selected="@T("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected")">
+                <span></span>
+                <i class="fa fa-close hidden"></i>
+            </a>
         </div>
     </div>
     <div class="content">
         <div class="form-horizontal">
             <div class="panel-group">
-                <div class="panel panel-default panel-search panel-popup">
+                <div class="panel panel-default panel-search panel-popup" id="js-search-panel">
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-sm-6">
@@ -82,7 +88,7 @@
                         </div>
                         <div class="row">
                             <div class="col-sm-12">
-                                <input type="button" id="search-products" class="btn btn-primary btn-search" value="@T("Admin.Common.Search")" />
+                                <input type="button" id="js-search-btn" class="btn btn-primary btn-search" value="@T("Admin.Common.Search")" />
                             </div>
                         </div>
                     </div>
@@ -90,64 +96,14 @@
 
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div id="products-grid"></div>
-
-                        <script>
-                            $(document).ready(function () {
-                                $("#products-grid").kendoGrid({
-                                    dataSource: {
-                                        type: "json",
-                                        transport: {
-                                            read: {
-                                                url: "@Html.Raw(Url.RouteUrl("Plugin.DiscountRules.HasProducts.ProductAddPopupList"))",
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: additionalData
-                                            }
-                                        },
-                                        schema: {
-                                            data: "Data",
-                                            total: "Total",
-                                            errors: "Errors"
-                                        },
-                                        error: function(e) {
-                                            display_kendoui_grid_error(e);
-                                            // Cancel the changes
-                                            this.cancelChanges();
-                                        },
-                                        pageSize: @(popupGridPageSize),
-                                        serverPaging: true,
-                                        serverFiltering: true,
-                                        serverSorting: true
-                                    },
-                                    pageable: {
-                                        refresh: true,
-                                        @Html.Partial("~/Administration/Views/Shared/_GridPagerMessages.cshtml")
-                                    },
-                                    editable: {
-                                        confirmation: "@T("Admin.Common.DeleteConfirmation")",
-                                        mode: "inline"
-                                    },
-                                    scrollable: false,
-                                    columns: [{
-                                        field: "Name",
-                                        title: "@T("Admin.Common.Select")",
-                                        width: 50,
-                                        template: '<input type="button" value="@T("Admin.Common.Select")" onclick="selectRequiredProduct(#=Id#)" class="btn btn-default" />'
-                                    },{
-                                        field: "Name",
-                                        title: "@T("Admin.Catalog.Products.Fields.Name")"
-                                    }, {
-                                        field: "Published",
-                                        title: "@T("Admin.Catalog.Products.Fields.Published")",
-                                        width: 100,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '# if(Published) {# <i class="fa fa-check true-icon"></i> #} else {# <i class="fa fa-close false-icon"></i> #} #'
-                                    }]
-                                });
-                            });
-                        </script>
+                        <div id="js-item-grid"></div>
+                        <div id="js-selected-item-grid"></div>
+                    </div>
+                    <div class="panel-footer">
+                        <button type="button" name="save" id="js-save-btn" class="btn bg-blue">
+                            <i class="fa fa-floppy-o"></i>
+                            @T("Admin.Common.Select")
+                        </button>
                     </div>
                 </div>
             </div>
@@ -155,47 +111,286 @@
     </div>
 
     <script type="text/javascript">
-        $(document).ready(function () {
-            $('#search-products').click(function () {
-                var grid = $('#products-grid').data('kendoGrid');
-                grid.dataSource.page(1); //new search. Set page size to 1
-                //grid.dataSource.read(); we already loaded the grid above using "page" function
-                return false;
+        (function (win, $) {
+
+            var $doc = $(win.document);
+
+            var popupGridPageSize = @popupGridPageSize;
+            var selectorSearchProductNameInput = '#@Html.FieldIdFor(model => model.SearchProductName)';
+            var selectorSearchCategoryIdInput = '#@Html.FieldIdFor(model => model.SearchCategoryId)';
+            var selectorSearchManufacturerIdInput = '#@Html.FieldIdFor(model => model.SearchManufacturerId)';
+            var selectorSearchStoreIdInput = '#@Html.FieldIdFor(model => model.SearchStoreId)';
+            var selectorSearchVendorIdInput = '#@Html.FieldIdFor(model => model.SearchVendorId)';
+            var selectorSearchProductTypeInput = '#@Html.FieldIdFor(model => model.SearchProductTypeId)';
+
+            var qsParamItemIds = '@(Context.Request.QueryString["itemIds"])';
+            var qsParamItemIdsInput = '@(Context.Request.QueryString["itemIdsInput"])';
+            var qsParamRefreshBtnId = '@(Context.Request.QueryString["refreshBtnId"])';
+
+            var urlProductAddPopupList = '@Html.Raw(Url.Action("ProductAddPopupList", "DiscountRulesHasProducts"))';
+            var urlProductSelectedPopupList = '@Html.Raw(Url.Action("ProductSelectedPopupList", "DiscountRulesHasProducts"))';
+
+            // Cache current item ids
+            var selectedItemIdsCache = getIdArr(qsParamItemIds);
+
+            $doc.ready(function () {
+
+                var $searchPanel = $('#js-search-panel');
+                var $searchBtn = $('#js-search-btn');
+                var $saveBtn = $('#js-save-btn');
+                var $itemCount = $('#js-selected-item-count');
+                var $itemGrid = $('#js-item-grid');
+                var $itemSelectedGrid = $('#js-selected-item-grid');
+                var $selectedGrid = $itemGrid;
+
+                // Update selected item count
+                updateItemCount($itemCount, selectedItemIdsCache.length);
+
+                // Initialize item grid
+                $itemGrid.kendoGrid(getKendoGridOptions({
+                    url: urlProductAddPopupList,
+                    data: additionalData,
+                    popupGridPageSize: popupGridPageSize,
+                    checked: '',
+                    serverPaging: true,
+                    pageable: {
+                        refresh: true,
+                        @Html.Partial("~/Administration/Views/Shared/_GridPagerMessages.cshtml")
+                    },
+                    error: function (e) {
+                        display_kendoui_grid_error(e);
+                        this.cancelChanges();
+                    },
+                    dataBound: function (arg) {
+                        // Select / deselect loaded item checkboxes
+                        initializeCheckboxes($selectedGrid);
+                    }
+                }));
+
+                // Show selected items
+                $itemCount.click(function () {
+
+                    if ($selectedGrid === $itemGrid) {
+                        var itemCount = parseInt($(this).data('count'));
+                        if (itemCount === 0) {
+                            return false;
+                        }
+
+                        // Show loading animation
+                        var itemGrid = $itemGrid.data("kendoGrid");
+                        kendo.ui.progress(itemGrid.element, true);
+
+                        // Initialize selected items grid
+                        $itemSelectedGrid.kendoGrid(getKendoGridOptions({
+                            url: urlProductSelectedPopupList,
+                            data: additionalDataSelected,
+                            checked: 'checked',
+                            serverPaging: false,
+                            pageable: false,
+                            error: function (e) {
+                                display_kendoui_grid_error(e);
+                                this.cancelChanges();
+                                kendo.ui.progress(itemGrid.element, false);
+                            },
+                            dataBound: function(arg) {
+                                // Show selected items grid
+                                kendo.ui.progress(itemGrid.element, false);
+                                $itemSelectedGrid.show();
+                                $itemGrid.hide();
+                                $searchPanel.hide();
+                                $selectedGrid = $itemSelectedGrid;
+                                $itemCount.find('i').removeClass('hidden');
+                            }
+                        }));
+                    }
+                    else {
+                        // Destroy previous selected items grid
+                        var selectedGrid = $itemSelectedGrid.data("kendoGrid");
+                        if (selectedGrid) {
+                            selectedGrid.destroy();
+                        }
+                        $itemSelectedGrid.hide().html('');
+                        $itemGrid.show();
+                        $searchPanel.show();
+                        $selectedGrid = $itemGrid;
+                        $itemCount.find('i').addClass('hidden');
+                        initializeCheckboxes($selectedGrid);
+                        updateItemCount($itemCount, selectedItemIdsCache.length);
+                    }
+
+                });
+
+                // Search items
+                $searchBtn.click(function () {
+                    var grid = $itemGrid.data('kendoGrid');
+                    grid.dataSource.page(1); //new search. Set page size to 1
+                    //grid.dataSource.read(); we already loaded the grid above using "page" function
+                    return false;
+                });
+
+                // Fire search after pressing enter
+                $(selectorSearchProductNameInput).keydown(function(event) {
+                    if (event.keyCode == 13) {
+                        $searchBtn.click();
+                        return false;
+                    }
+                });
+
+                // Select / deselect all item checkboxes
+                $doc.on('change', '.js-master-checkbox', function () {
+                    $selectedGrid.find('.js-checkbox').attr('checked', $(this).is(':checked')).change();
+                });
+
+
+                $doc.on('change', '.js-checkbox', function () {
+                    // Select / deselect master checkbox
+                    updateMasterCheckbox($selectedGrid);
+
+                    // Keep track of selected item ids
+                    var index = selectedItemIdsCache.indexOf(this.value);
+                    if (this.checked) {
+                        if (index < 0) {
+                            selectedItemIdsCache.push(this.value);
+                        }
+                    }
+                    else {
+                        if (index >= 0) {
+                            selectedItemIdsCache.splice(index, 1);
+                        }
+                    }
+
+                    // Update selected item count
+                    updateItemCount($itemCount, selectedItemIdsCache.length);
+                });
+
+                // Save selected items and close popup
+                $saveBtn.on('click', function () {
+                    try {
+                        var parentDoc = win.opener.document;
+                        var $itemIdsInput = $(parentDoc.getElementById(qsParamItemIdsInput));
+                        var $refreshBtn = $(parentDoc.getElementById(qsParamRefreshBtnId));
+                        $itemIdsInput.val(selectedItemIdsCache.join(', '));
+                        $refreshBtn.click();
+                    }
+                    catch (e){}
+                    win.close();
+                });
             });
-        });
 
-        $("#@Html.FieldIdFor(model => model.SearchProductName)").keydown(function (event) {
-            if (event.keyCode == 13) {
-                $("#search-products").click();
-                return false;
+            function getIdArr(str) {
+                return str ? str.replace(/\s/g, '').split(',') : [];
             }
-        });
 
-        function additionalData() {
-            var data = {
-                SearchProductName: $('#@Html.FieldIdFor(model => model.SearchProductName)').val(),
-                SearchCategoryId: $('#SearchCategoryId').val(),
-                SearchManufacturerId: $('#SearchManufacturerId').val(),
-                SearchStoreId: $('#SearchStoreId').val(),
-                SearchVendorId: $('#SearchVendorId').val(),
-                SearchProductTypeId: $('#SearchProductTypeId').val()
-            };
-            addAntiForgeryToken(data);
-            return data;
-        }
+            function initializeCheckboxes($selectedGrid) {
+                var $checkboxes = $selectedGrid.find('.js-checkbox');
+                $checkboxes.each(function () {
+                    this.checked = selectedItemIdsCache.indexOf(this.value) > -1;
+                });
 
-        function selectRequiredProduct(productid) {
-            try {
-                var currentValue = window.opener.document.getElementById('@(ViewBag.productIdsInput)').value;
-                if (currentValue) {
-                    //add comma
-                    window.opener.document.getElementById('@(ViewBag.productIdsInput)').value += ', ';
+                // Select / deselect master checkbox
+                updateMasterCheckbox($selectedGrid);
+            }
+
+            function updateMasterCheckbox($selectedGrid) {
+                var $checkboxes = $selectedGrid.find('.js-checkbox');
+                var checkboxLength = $checkboxes.length;
+                var checkboxCheckedLength = $checkboxes.filter(':checked').length;
+                var isAllChecked = checkboxLength > 0 && checkboxLength === checkboxCheckedLength;
+                $selectedGrid.find('.js-master-checkbox').attr('checked', isAllChecked);
+            }
+
+            function updateItemCount($itemCount, itemCount) {
+                var cursor = null;
+                var color = null;
+                var text = null;
+                var elItemCount = $itemCount[0];
+                if (itemCount === 0) {
+                    text = $itemCount.data('text-not-selected');
+                    if ($itemCount.find('i.hidden').length > 0) {
+                        cursor = 'default';
+                        color = '#333';
+                    }
                 }
-                window.opener.document.getElementById('@(ViewBag.productIdsInput)').value += productid;
-                window.opener.document.getElementById('@(ViewBag.btnId)').click();
+                else if (itemCount === 1) {
+                    text = $itemCount.data('text-single-selected');
+                }
+                else {
+                    text = $itemCount.data('text-multiple-selected').replace('{0}', itemCount);
+                }
+                elItemCount.style.cursor = cursor;
+                elItemCount.style.color = color;
+                $itemCount.data('count', itemCount);
+                $itemCount.find('span').text(text);
             }
-            catch (e){}
-            window.close();
-        }
+
+            function additionalData() {
+                var data = {
+                    SearchProductName: $(selectorSearchProductNameInput).val(),
+                    SearchCategoryId: $(selectorSearchCategoryIdInput).val(),
+                    SearchManufacturerId: $(selectorSearchManufacturerIdInput).val(),
+                    SearchStoreId: $(selectorSearchStoreIdInput).val(),
+                    SearchVendorId: $(selectorSearchVendorIdInput).val(),
+                    SearchProductTypeId: $(selectorSearchProductTypeInput).val()
+                };
+                addAntiForgeryToken(data);
+                return data;
+            }
+
+            function additionalDataSelected() {
+                var data = {
+                    selectedProductIds: selectedItemIdsCache.join(',')
+                };
+                addAntiForgeryToken(data);
+                return data;
+            }
+
+            function getKendoGridOptions(options) {
+                return {
+                    dataSource: {
+                        type: 'json',
+                        transport: {
+                            read: {
+                                url: options.url,
+                                type: 'POST',
+                                dataType: 'json',
+                                data: options.data
+                            }
+                        },
+                        schema: {
+                            data: 'Data',
+                            total: 'Total',
+                            errors: 'Errors'
+                        },
+                        error: options.error,
+                        pageSize: options.popupGridPageSize,
+                        serverPaging: options.serverPaging,
+                        serverFiltering: true,
+                        serverSorting: true
+                    },
+                    pageable: options.pageable,
+                    dataBound: options.dataBound,
+                    scrollable: false,
+                    columns: [{
+                        field: 'Id',
+                        headerTemplate: '<input type="checkbox" class="js-master-checkbox" ' + options.checked + ' />',
+                        headerAttributes: { style: 'text-align:center' },
+                        template: '<input type="checkbox" value="#=Id#" class="js-checkbox" ' + options.checked + ' />',
+                        attributes: { style: 'text-align:center' },
+                        width: 50
+                    }, {
+                        field: 'Name',
+                        title: '@T("Admin.Catalog.Products.Fields.Name")'
+                    }, {
+                        field: 'Published',
+                        title: '@T("Admin.Catalog.Products.Fields.Published")',
+                        width: 100,
+                        headerAttributes: { style: 'text-align:center' },
+                        attributes: { style: 'text-align:center' },
+                        template: '# if(Published) {# <i class="fa fa-check true-icon"></i> #} else {# <i class="fa fa-close false-icon"></i> #} #'
+                    }]
+                };
+            }
+
+        })(this, this.jQuery);
     </script>
 }
