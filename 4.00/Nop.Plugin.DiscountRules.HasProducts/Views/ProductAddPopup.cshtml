@@ -8,18 +8,18 @@
     var popupGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().PopupGridPageSize;
 
     //page title
-    ViewBag.Title = T("Plugins.DiscountRules.HasProducts.Fields.Products.Choose").Text;
+    ViewBag.Title = T("Plugins.DiscountRules.HasProducts.Choose").Text;
 }
 <form asp-controller="DiscountRulesHasProducts" asp-action="Configure" method="post">
     <div class="content-header clearfix">
         <h1 class="pull-left">
-            @T("Plugins.DiscountRules.HasProducts.Fields.Products.Choose")
+            @T("Plugins.DiscountRules.HasProducts.Choose")
         </h1>
         <div class="pull-right">
             <a href="javascript:void(0)" id="js-selected-item-count"
-               data-text-multiple-selected="@T("Plugins.DiscountRules.HasProducts.Fields.Products.Multiple.Selected")"
-               data-text-single-selected="@T("Plugins.DiscountRules.HasProducts.Fields.Products.Single.Selected")"
-               data-text-not-selected="@T("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected")">
+               data-text-multiple-selected="@T("Plugins.DiscountRules.HasProducts.Multiple.Selected")"
+               data-text-single-selected="@T("Plugins.DiscountRules.HasProducts.Single.Selected")"
+               data-text-not-selected="@T("Plugins.DiscountRules.HasProducts.Not.Selected")">
                 <span></span>
                 <i class="fa fa-close hidden"></i>
             </a>
