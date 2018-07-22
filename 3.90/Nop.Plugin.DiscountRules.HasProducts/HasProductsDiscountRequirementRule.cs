@@ -101,11 +101,12 @@ namespace Nop.Plugin.DiscountRules.HasProducts
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min.Hint", "Discount will be applied if cart contains more selected products than the defined value here. Minimum quantity should be greater than zero.");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max", "Maximum quantity");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max.Hint", "Discount will be applied if cart contains fewer selected products than the defined value here. Maximum quantity should be greater than zero and minimum quantity.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Multiple.Selected", "{0} products selected");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Single.Selected", "One product selected");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected", "No products selected");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew", "Add product");
-            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Choose", "Choose");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Multiple.Selected", "{0} products selected");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Single.Selected", "One product selected");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Not.Selected", "No products selected");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.AddNew", "Add product");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Choose", "Choose");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.ViewSelectedProducts", "View Selected Products");
             base.Install();
         }
 
@@ -118,11 +119,12 @@ namespace Nop.Plugin.DiscountRules.HasProducts
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Min.Hint");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Quantity.Max.Hint");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Multiple.Selected");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Single.Selected");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew");
-            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Choose");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Multiple.Selected");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Single.Selected");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Not.Selected");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.AddNew");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Choose");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.ViewSelectedProducts");
             base.Uninstall();
         }
     }

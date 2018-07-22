@@ -28,11 +28,6 @@ namespace Nop.Plugin.DiscountRules.HasProducts
                 new { controller = "DiscountRulesHasProducts", action = "ProductSelectedPopupList" },
                 new[] { "Nop.Plugin.DiscountRules.HasProducts.Controllers" }
             );
-            routes.MapRoute("Plugin.DiscountRules.HasProducts.LoadProductFriendlyNames",
-                 "Plugins/DiscountRulesHasProducts/LoadProductFriendlyNames",
-                 new { controller = "DiscountRulesHasProducts", action = "LoadProductFriendlyNames" },
-                 new[] { "Nop.Plugin.DiscountRules.HasProducts.Controllers" }
-            );
         }
         public int Priority
         {

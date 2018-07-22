@@ -123,11 +123,8 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 _discountService.UpdateDiscount(discount);                
             }
 
-            if (productQuantityMin > 0 && productQuantityMax > 0 && productQuantityMin <= productQuantityMax)
-            {
-                _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMin-{0}", discountRequirement.Id), productQuantityMin);
-                _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMax-{0}", discountRequirement.Id), productQuantityMax);
-            }
+            _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMin-{0}", discountRequirement.Id), productQuantityMin);
+            _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMax-{0}", discountRequirement.Id), productQuantityMax);
             _settingService.SetSetting(string.Format("DiscountRequirement.RestrictedProductIds-{0}", discountRequirement.Id), productIds);
 
             return Json(new { Result = true, NewRequirementId = discountRequirement.Id }, JsonRequestBehavior.AllowGet);
@@ -207,41 +204,6 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
 
             var products = _productService.GetProductsByIds(Array.ConvertAll(selectedProductIds.Split(','), int.Parse));
             return Json(GetGridModel(products, products.Count()));
-        }
-
-        [HttpPost]
-        [ValidateInput(false)]
-        [AdminAntiForgery]
-        public ActionResult LoadProductFriendlyNames(string productIds)
-        {
-            var result = "";
-            var hasManageProductsPermission = _permissionService.Authorize(StandardPermissionProvider.ManageProducts);
-
-            if (hasManageProductsPermission && !String.IsNullOrWhiteSpace(productIds))
-            {
-                //we support comma-separated list of product identifiers (e.g. 77, 123, 156).
-                var rangeArray = productIds
-                    .Split(new [] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim())
-                    .ToList();
-
-                //try to parse product ids
-                var ids = new List<int>();
-                foreach (string str1 in rangeArray)
-                    if (int.TryParse(str1, out int productId))
-                        ids.Add(productId);
-
-                //prepare product names
-                var products = _productService.GetProductsByIds(ids.ToArray());
-                var productNames = new List<string>();
-
-                for (int i = 0; i <= products.Count - 1; i++)
-                    productNames.Add(products[i].Name);
-
-                result = string.Join(", ", productNames);
-            }
-
-            return Json(new { Text = result });
         }
 
         private DataSourceResult GetGridModel(IList<Product> products, int total)

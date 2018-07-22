@@ -1,9 +1,9 @@
 ﻿Group: Discount requirements
-FriendlyName: Cart must contain a certain amount of products
+FriendlyName: Cart must contain certain amount of products
 SystemName: DiscountRequirement.HasProducts
 Version: 1.00
 SupportedVersions: 3.90
 Author: nopWay
 DisplayOrder: 1
 FileName: Nop.Plugin.DiscountRules.HasProducts.dll
-Description: This plugin allows you to configure discounts for customers who have a certain amount of products in the cart
+Description: This plugin allows you to add a discount requirement that checks total quantity of selected products in the cart against predefined min and max quantity values
