@@ -123,11 +123,8 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 _discountService.UpdateDiscount(discount);                
             }
 
-            if (productQuantityMin > 0 && productQuantityMax > 0 && productQuantityMin <= productQuantityMax)
-            {
-                _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMin-{0}", discountRequirement.Id), productQuantityMin);
-                _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMax-{0}", discountRequirement.Id), productQuantityMax);
-            }
+            _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMin-{0}", discountRequirement.Id), productQuantityMin);
+            _settingService.SetSetting(string.Format("DiscountRequirement.ProductQuantityMax-{0}", discountRequirement.Id), productQuantityMax);
             _settingService.SetSetting(string.Format("DiscountRequirement.RestrictedProductIds-{0}", discountRequirement.Id), productIds);
 
             return Json(new { Result = true, NewRequirementId = discountRequirement.Id }, JsonRequestBehavior.AllowGet);
