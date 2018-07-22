@@ -4,54 +4,60 @@
 @model Nop.Plugin.DiscountRules.HasProducts.Models.RequirementModel
 
 <div class="form-group">
-    <div class="col-md-3 requirement-label-col">
+    <div class="col-md-3">
         <nop-label asp-for="ProductQuantityMin" />
     </div>
-    <div class="col-md-9 requirement-data-col">
+    <div class="col-md-9">
         <div class="requirement-data-input">
             <nop-editor asp-for="ProductQuantityMin" />
         </div>
     </div>
 </div>
 <div class="form-group">
-    <div class="col-md-3 requirement-label-col">
+    <div class="col-md-3">
         <nop-label asp-for="ProductQuantityMax" />
     </div>
-    <div class="col-md-9 requirement-data-col">
+    <div class="col-md-9">
         <div class="requirement-data-input">
             <nop-editor asp-for="ProductQuantityMax" />
         </div>
     </div>
 </div>
 <div class="form-group">
-    <div class="col-md-3 requirement-label-col">
+    <div class="col-md-3">
         <nop-label asp-for="Products" />
     </div>
-    <div class="col-md-9 requirement-data-col">
+    <div class="col-md-9">
         <div class="requirement-data-input">
             <div class="input-group">
                 <nop-editor asp-for="Products" />
                 <div class="input-group-btn">
                     <input type="button"
-                           id="btnAddNewDiscountRequirementProduct@(Model.RequirementId)"
+                           id="js-open-add-popup-btn@(Model.RequirementId)"
                            value="@T("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew")"
                            class="btn btn-info" />
-                    <input type="button" id="btnRefreshDiscountRequirementProducts@(Model.RequirementId)" style="display: none" />
+                    <input type="button" id="js-refresh-btn@(Model.RequirementId)" style="display: none" />
                 </div>
             </div>
         </div>
         <div class="requirement-data-buttons">
-            <input type="button" id="saveHasProductsrequirement@(Model.RequirementId)" class="btn btn-primary" value="@T("Admin.Common.Save")" />
+            <input type="button" id="js-save-btn@(Model.RequirementId)" class="btn btn-primary" value="@T("Admin.Common.Save")" />
         </div>
     </div>
 </div>
 <div class="form-group">
-    <div class="col-md-offset-3 col-md-9 requirement-messages-col">
-        <div class="requirement-product-names text-blue" id="discountrequirement-product-names@(Model.RequirementId)"></div>
-        <div id="pnl-save-requirement-result@(Model.RequirementId)" style="display: none;" class="text-green margin-t-5">
+    <div class="col-md-offset-3 col-md-9">
+        <a href="javascript:void(0)" id="js-view-selected-items-btn@(Model.RequirementId)" class="hidden">
+            @T("Plugins.DiscountRules.HasProducts.ViewSelectedProducts")
+        </a>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-3 col-md-9">
+        <div id="js-save-result-message@(Model.RequirementId)" style="display: none;" class="text-green margin-t-5">
             @T("Admin.Promotions.Discounts.Requirements.Saved")
         </div>
-        <div id="discountrequirement-products-check-progress@(Model.RequirementId)" class="please-wait pull-right" style="display: none;">
+        <div id="js-check-progress@(Model.RequirementId)" class="please-wait pull-right" style="display: none;">
             @T("Common.Wait...")
         </div>
     </div>
@@ -68,46 +74,42 @@
         var selectorItemsInput = '#@Html.IdFor(model => model.Products)';
         var selectorMinQuantityInput = '#@Html.IdFor(model => model.ProductQuantityMin)';
         var selectorMaxQuantityInput = '#@Html.IdFor(model => model.ProductQuantityMax)';
-        var selectorAddBtn = '#btnAddNewDiscountRequirementProduct' + requirementId;
-        var selectorRefreshBtn = '#btnRefreshDiscountRequirementProducts' + requirementId;
-        var selectorCheckProgress = '#discountrequirement-products-check-progress' + requirementId;
-        var selectorFriendlyNameContainer = '#discountrequirement-product-names' + requirementId;
-        var selectorSaveRequirementBtn = '#saveHasProductsrequirement' + requirementId;
-        var selectorSaveRequirementResult = '#pnl-save-requirement-result' + requirementId;
+        var selectorAddBtn = '#js-open-add-popup-btn' + requirementId;
+        var selectorRefreshBtn = '#js-refresh-btn' + requirementId;
+        var selectorCheckProgress = '#js-check-progress' + requirementId;
+        var selectorViewSelectedItemsBtn = '#js-view-selected-items-btn' + requirementId;
+        var selectorSaveRequirementBtn = '#js-save-btn' + requirementId;
+        var selectorSaveRequirementResult = '#js-save-result-message' + requirementId;
 
         var urlConfigure = '@Url.Action("Configure", "DiscountRulesHasProducts")';
         var urlProductAddPopup = '@Url.Action("ProductAddPopup", "DiscountRulesHasProducts")';
-        var urlLoadProductFriendlyNames = '@Url.Action("LoadProductFriendlyNames", "DiscountRulesHasProducts")';
 
         var errorFailedToSave = '@Html.Raw(JavaScriptEncoder.Default.Encode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))';
 
         $doc.ready(function () {
 
-            // Initial load friendly names
-            loadDiscountRequirementProductFriendlyNames();
+            toggleViewSelectedProductsBtn();
 
-            // Load friendly names after new item Ids are entered manually
+            // Toggle "view selected products" button after new item Ids are entered manually
             $(selectorItemsInput)
                 .data('timeout', null)
                 .keyup(function () {
                     var $this = $(this);
                     clearTimeout($this.data('timeout'));
-                    $this.data('timeout', setTimeout(loadDiscountRequirementProductFriendlyNames, 1000));
+                    $this.data('timeout', setTimeout(toggleViewSelectedProductsBtn, 1000));
                 });
 
             // Refresh button
-            $(selectorRefreshBtn).click(loadDiscountRequirementProductFriendlyNames);
+            $(selectorRefreshBtn).click(toggleViewSelectedProductsBtn);
 
             // Open add item popup
             $(selectorAddBtn).click(function () {
-                var $this = $(this);
-                var itemIds = $(selectorItemsInput).val();
-                var qs = $.param({
-                    refreshBtnId: selectorRefreshBtn.replace('#', ''),
-                    itemIdsInput: selectorItemsInput.replace('#', ''),
-                    itemIds: itemIds.replace(/\s/g, '')
-                });
-                win.OpenWindow(urlProductAddPopup + '?' + qs, 800, 850, true);
+                openPopup(false);
+            });
+
+            // Open selected items popup
+            $(selectorViewSelectedItemsBtn).click(function () {
+                openPopup(true);
             });
 
             // Save reqirement
@@ -139,7 +141,6 @@
                         else {
                             alert(data.ErrorMessage);
                         }
-
                     },
                     error: function () {
                         alert(error.failedToSave);
@@ -148,36 +149,23 @@
             });
         });
 
-        // Load friendly names
-        function loadDiscountRequirementProductFriendlyNames() {
+        // Show / hide view selected categories button
+        function toggleViewSelectedProductsBtn() {
             var inputValue = $(selectorItemsInput).val();
-            if (inputValue) {
-                var $checkProgress = $(selectorCheckProgress).show();
+            $(selectorViewSelectedItemsBtn)[inputValue ? 'removeClass' : 'addClass']('hidden');
+        }
 
-                var postData = {
-                    productIds: inputValue
-                };
-                addAntiForgeryToken(postData);
-
-                $.ajax({
-                    cache: false,
-                    type: 'POST',
-                    url: urlLoadProductFriendlyNames,
-                    data: postData,
-                    dataType: 'json',
-                    success: function(data) {
-                        $checkProgress.hide();
-                        $(selectorFriendlyNameContainer).text(data.Text).addClass('filled');
-                    },
-                    failure: function () {
-                        $checkProgress.hide();
-                        $(selectorFriendlyNameContainer).text('').removeClass('filled');
-                    }
-                });
-            } else {
-                $(selectorFriendlyNameContainer).text('').removeClass('filled');
-            }
+        function openPopup(showSelectedProducts) {
+            var itemIds = $(selectorItemsInput).val();
+            var qs = $.param({
+                refreshBtnId: selectorRefreshBtn.replace('#', ''),
+                itemIdsInput: selectorItemsInput.replace('#', ''),
+                itemIds: itemIds.replace(/\s/g, ''),
+                selectedView: showSelectedProducts ? 1 : 0
+            });
+            win.OpenWindow(urlProductAddPopup + '?' + qs, 800, 850, true);
         }
 
     })(this, this.jQuery);
+
 </script>

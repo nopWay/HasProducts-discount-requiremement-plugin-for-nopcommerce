@@ -113,6 +113,7 @@ namespace Nop.Plugin.DiscountRules.HasProducts
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected", "No products selected");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew", "Add product");
             this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Choose", "Choose");
+            this.AddOrUpdatePluginLocaleResource("Plugins.DiscountRules.HasProducts.ViewSelectedProducts", "View Selected Products");
             base.Install();
         }
 
@@ -130,6 +131,7 @@ namespace Nop.Plugin.DiscountRules.HasProducts
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Not.Selected");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.AddNew");
             this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.Fields.Products.Choose");
+            this.DeletePluginLocaleResource("Plugins.DiscountRules.HasProducts.ViewSelectedProducts");
             base.Uninstall();
         }
     }

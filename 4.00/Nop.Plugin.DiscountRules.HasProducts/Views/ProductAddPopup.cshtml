@@ -28,7 +28,7 @@
     <div class="content">
         <div class="form-horizontal">
             <div class="panel-group">
-                <div class="panel panel-default panel-search panel-popup" id="js-search-panel">
+                <div class="panel panel-default panel-search panel-popup hidden" id="js-search-panel">
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-sm-6">
@@ -93,8 +93,8 @@
                 </div>
                 <div class="panel panel-default">
                     <div class="panel-body">
-                        <div id="js-item-grid"></div>
-                        <div id="js-selected-item-grid"></div>
+                        <div id="js-item-grid" class="hidden"></div>
+                        <div id="js-selected-item-grid" class="hidden"></div>
                     </div>
                     <div class="panel-footer">
                         <button type="button" name="save" id="js-save-btn" class="btn bg-blue">
@@ -124,6 +124,7 @@
             var qsParamItemIds = '@(Context.Request.Query["itemIds"])';
             var qsParamItemIdsInput = '@(Context.Request.Query["itemIdsInput"])';
             var qsParamRefreshBtnId = '@(Context.Request.Query["refreshBtnId"])';
+            var qsParamSelectedView = !!parseInt('@(Context.Request.Query["selectedView"])');
 
             var urlProductAddPopupList = '@Html.Raw(Url.Action("ProductAddPopupList", "DiscountRulesHasProducts"))';
             var urlProductSelectedPopupList = '@Html.Raw(Url.Action("ProductSelectedPopupList", "DiscountRulesHasProducts"))';
@@ -145,6 +146,14 @@
                 updateItemCount($itemCount, selectedItemIdsCache.length);
 
                 // Initialize item grid
+                if (qsParamSelectedView) {
+                    $itemSelectedGrid.removeClass('hidden');
+                }
+                else {
+                    $itemGrid.removeClass('hidden');
+                    $searchPanel.removeClass('hidden');
+                }
+
                 $itemGrid.kendoGrid(getKendoGridOptions({
                     url: urlProductAddPopupList,
                     data: additionalData,
@@ -193,9 +202,9 @@
                             dataBound: function (arg) {
                                 // Show selected items grid
                                 kendo.ui.progress(itemGrid.element, false);
-                                $itemSelectedGrid.show();
-                                $itemGrid.hide();
-                                $searchPanel.hide();
+                                $itemSelectedGrid.removeClass('hidden');
+                                $itemGrid.addClass('hidden');
+                                $searchPanel.addClass('hidden');
                                 $selectedGrid = $itemSelectedGrid;
                                 $itemCount.find('i').removeClass('hidden');
                             }
@@ -207,9 +216,9 @@
                         if (selectedGrid) {
                             selectedGrid.destroy();
                         }
-                        $itemSelectedGrid.hide().html('');
-                        $itemGrid.show();
-                        $searchPanel.show();
+                        $itemSelectedGrid.addClass('hidden').html('');
+                        $itemGrid.removeClass('hidden');
+                        $searchPanel.removeClass('hidden');
                         $selectedGrid = $itemGrid;
                         $itemCount.find('i').addClass('hidden');
                         initializeCheckboxes($selectedGrid);
@@ -217,6 +226,11 @@
                     }
 
                 });
+
+                // Show selected item grid first if "selectedView" param is true.
+                if (qsParamSelectedView) {
+                    $itemCount.click();
+                }
 
                 // Search items
                 $searchBtn.click(function () {
