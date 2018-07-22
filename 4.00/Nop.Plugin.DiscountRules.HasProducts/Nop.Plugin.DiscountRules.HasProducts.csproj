@@ -5,7 +5,7 @@
     <Copyright>Copyright © nopWay, MIT License</Copyright> 
     <Company></Company> 
     <Authors>nopWay</Authors> 
-    <Version>1.00</Version> 
+    <Version>1.10</Version> 
     <Description>This plugin allows you to add a discount requirement that checks total quantity of selected products in the cart against predefined min and max quantity values</Description> 
     <PackageLicenseUrl>https://github.com/nopWay/HasProducts-discount-requiremement-plugin-for-nopcommerce/blob/master/LICENSE</PackageLicenseUrl> 
     <PackageProjectUrl>https://github.com/nopWay</PackageProjectUrl> 

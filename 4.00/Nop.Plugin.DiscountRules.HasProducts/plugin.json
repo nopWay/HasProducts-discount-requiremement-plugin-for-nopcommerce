@@ -2,7 +2,7 @@
   "Group": "Discount requirements",
   "FriendlyName": "Cart must contain certain amount of products",
   "SystemName": "DiscountRequirement.HasProducts",
-  "Version": "1.00",
+  "Version": "1.10",
   "SupportedVersions": [ "4.00" ],
   "Author": "nopWay",
   "DisplayOrder": 1,
