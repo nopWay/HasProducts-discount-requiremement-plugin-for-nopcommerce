@@ -126,11 +126,8 @@ namespace Nop.Plugin.DiscountRules.HasProducts.Controllers
                 _discountService.UpdateDiscount(discount);
             }
 
-            if (productQuantityMin > 0 && productQuantityMax > 0 && productQuantityMin <= productQuantityMax)
-            {
-                _settingService.SetSetting($"DiscountRequirement.ProductQuantityMin-{discountRequirement.Id}", productQuantityMin);
-                _settingService.SetSetting($"DiscountRequirement.ProductQuantityMax-{discountRequirement.Id}", productQuantityMax);
-            }
+            _settingService.SetSetting($"DiscountRequirement.ProductQuantityMin-{discountRequirement.Id}", productQuantityMin);
+            _settingService.SetSetting($"DiscountRequirement.ProductQuantityMax-{discountRequirement.Id}", productQuantityMax);
             _settingService.SetSetting($"DiscountRequirement.RestrictedProductIds-{discountRequirement.Id}", productIds);
 
             return Json(new { Result = true, NewRequirementId = discountRequirement.Id });
