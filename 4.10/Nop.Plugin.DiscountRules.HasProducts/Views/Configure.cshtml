@@ -1,0 +1,169 @@
+﻿@{
+    Layout = "";
+}
+@model Nop.Plugin.DiscountRules.HasProducts.Models.RequirementModel
+
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="ProductQuantityMin" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <nop-editor asp-for="ProductQuantityMin" />
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="ProductQuantityMax" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <nop-editor asp-for="ProductQuantityMax" />
+        </div>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-3">
+        <nop-label asp-for="Products" />
+    </div>
+    <div class="col-md-9">
+        <div class="requirement-data-input">
+            <div class="input-group">
+                <nop-editor asp-for="Products" />
+                <div class="input-group-btn">
+                    <input type="button"
+                           id="js-open-add-popup-btn@(Model.RequirementId)"
+                           value="@T("Plugins.DiscountRules.HasProducts.AddNew")"
+                           class="btn btn-info" />
+                    <input type="button" id="js-refresh-btn@(Model.RequirementId)" style="display: none" />
+                </div>
+            </div>
+        </div>
+        <a href="javascript:void(0)" id="js-view-selected-items-btn@(Model.RequirementId)" class="hidden">
+            @T("Plugins.DiscountRules.HasProducts.ViewSelectedProducts")
+        </a>
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-3 col-md-9">
+        <input type="button" id="js-save-btn@(Model.RequirementId)" class="btn btn-primary" value="@T("Admin.Common.Save")" />
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-offset-3 col-md-9">
+        <div id="js-save-result-message@(Model.RequirementId)" style="display: none;" class="text-green margin-t-5">
+            @T("Admin.Promotions.Discounts.Requirements.Saved")
+        </div>
+        <div id="js-check-progress@(Model.RequirementId)" class="please-wait pull-right" style="display: none;">
+            @T("Common.Wait...")
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    (function (win, $) {
+
+        var $doc = $(win.document);
+
+        var discountId = '@Model.DiscountId';
+        var requirementId = '@Model.RequirementId';
+        var selectorItemsInput = '#@Html.IdFor(model => model.Products)';
+        var selectorMinQuantityInput = '#@Html.IdFor(model => model.ProductQuantityMin)';
+        var selectorMaxQuantityInput = '#@Html.IdFor(model => model.ProductQuantityMax)';
+        var selectorAddBtn = '#js-open-add-popup-btn' + requirementId;
+        var selectorRefreshBtn = '#js-refresh-btn' + requirementId;
+        var selectorCheckProgress = '#js-check-progress' + requirementId;
+        var selectorViewSelectedItemsBtn = '#js-view-selected-items-btn' + requirementId;
+        var selectorSaveRequirementBtn = '#js-save-btn' + requirementId;
+        var selectorSaveRequirementResult = '#js-save-result-message' + requirementId;
+
+        var urlConfigure = '@Url.Action("Configure", "DiscountRulesHasProducts")';
+        var urlProductAddPopup = '@Url.Action("ProductAddPopup", "DiscountRulesHasProducts")';
+
+        var errorFailedToSave = '@Html.Raw(JavaScriptEncoder.Default.Encode(T("Admin.Promotions.Discounts.Requirements.FailedToSave").Text))';
+
+        $doc.ready(function () {
+
+            toggleViewSelectedProductsBtn();
+
+            // Toggle "view selected products" button after new item Ids are entered manually
+            $(selectorItemsInput)
+                .data('timeout', null)
+                .keyup(function () {
+                    var $this = $(this);
+                    clearTimeout($this.data('timeout'));
+                    $this.data('timeout', setTimeout(toggleViewSelectedProductsBtn, 1000));
+                });
+
+            // Refresh button
+            $(selectorRefreshBtn).click(toggleViewSelectedProductsBtn);
+
+            // Open add item popup
+            $(selectorAddBtn).click(function () {
+                openPopup(false);
+            });
+
+            // Open selected items popup
+            $(selectorViewSelectedItemsBtn).click(function () {
+                openPopup(true);
+            });
+
+            // Save reqirement
+            $(selectorSaveRequirementBtn).click(function () {
+                var postData = {
+                    discountId: discountId,
+                    discountRequirementId: requirementId,
+                    productIds: $(selectorItemsInput).val(),
+                    productQuantityMin: parseFloat($(selectorMinQuantityInput).val() || 0),
+                    productQuantityMax: parseFloat($(selectorMaxQuantityInput).val() || 0)
+                };
+                addAntiForgeryToken(postData);
+
+                $.ajax({
+                    cache:false,
+                    type: 'POST',
+                    url: urlConfigure,
+                    data: postData,
+                    success: function (data) {
+                        if (data.Result) {
+                            $(selectorSaveRequirementResult).fadeIn('slow').delay(1000).fadeOut('slow');
+
+                            //notify parent if it's a new requirement
+                            if (requirementId === '0') {
+                                $('#discountRequirementContainer')
+                                    .trigger('nopnewdiscountruleadded', [data.NewRequirementId]);
+                            }
+                        }
+                        else {
+                            alert(data.ErrorMessage);
+                        }
+                    },
+                    error: function () {
+                        alert(error.failedToSave);
+                    }
+                });
+            });
+        });
+
+        // Show / hide view selected categories button
+        function toggleViewSelectedProductsBtn() {
+            var inputValue = $(selectorItemsInput).val();
+            $(selectorViewSelectedItemsBtn)[inputValue ? 'removeClass' : 'addClass']('hidden');
+        }
+
+        function openPopup(showSelectedProducts) {
+            var itemIds = $(selectorItemsInput).val();
+            var qs = $.param({
+                refreshBtnId: selectorRefreshBtn.replace('#', ''),
+                itemIdsInput: selectorItemsInput.replace('#', ''),
+                itemIds: itemIds.replace(/\s/g, ''),
+                selectedView: showSelectedProducts ? 1 : 0
+            });
+            win.OpenWindow(urlProductAddPopup + '?' + qs, 800, 850, true);
+        }
+
+    })(this, this.jQuery);
+
+</script>
