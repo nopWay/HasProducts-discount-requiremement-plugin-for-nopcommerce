@@ -27,4 +27,4 @@ In addition to the discount requirement, you will get a user friendly product se
 * Discount tag icon in the logo by Vectors Market from the Noun Project
 
 ### License
-MIT Copyright (c) 2018 nopWay
+MIT Copyright (c) 2019 nopWay
